@@ -1,0 +1,21 @@
+{
+	"name": "growth-institute/circle.so-php",
+	"description": "PHP library for Circle.so",
+	"type": "library",
+	"license": "MIT",
+	"autoload": {
+		"psr-4": {
+			"CirclePHP\\": "src/"
+		}
+	},
+	"authors": [
+		{
+			"name": "Rodrigo Tejero",
+			"email": "rodrigo.tejero@chimp.mx"
+		}
+	],
+	"minimum-stability": "stable",
+	"require": {
+		"curl/curl": "^2.3"
+	}
+}
