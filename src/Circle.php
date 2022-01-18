@@ -21,6 +21,10 @@
 			$this->community_id = $id;
 		}
 
+		public function setSpaceGroup($id) {
+			$this->space_group_id = $id;
+		}
+
 		public function getCommunity() {
 			return $this->community_id;
 		}
@@ -143,7 +147,7 @@
 
 			$params = array_merge($params, $options);
 
-			$this->curl->get($this->baseUrl . "spaces?community_id={$community_id}&sort={$sort}&per_page={$per_page}&page={$page}" . http_build_query($params));
+			$this->curl->get($this->baseUrl . "spaces?community_id={$community_id}&" . http_build_query($params));
 
 			$response = json_decode($this->curl->response);
 			return $response;
@@ -160,10 +164,11 @@
 			return $response;
 		}
 
-		public function createSpace($space_group_id, $name, $options = [], $community_id = 0) {
+		public function createSpace($name, $options = [], $space_group_id = 0, $community_id = 0) {
 
+			$space_group_id = $space_group_id ?: $this->space_group_id;
 			$community_id = $community_id ?: $this->community_id;
-			if(!$community_id) return false;
+			if(!$community_id || !$space_group_id) return false;
 
 			$params = [
 				'is_private' => false,
@@ -173,10 +178,18 @@
 			];
 
 			$params = array_merge($params, $options);
+			$name = urlencode($name);
 
-			$this->curl->post($this->baseUrl . "spaces?community_id={{community_id}}&name={$name}&space_group_id={$space_group_id}&" . http_build_query($params));
+			$this->curl->post($this->baseUrl . "spaces?community_id={$community_id}&name={$name}&space_group_id={$space_group_id}&" . http_build_query($params));
 
 			$response = json_decode($this->curl->response);
+
+			if(isset($response->success) && $response->success == true) {
+				$response = $response->space;
+			} else {
+				$response = false;
+			}
+
 			return $response;
 		}
 
@@ -252,9 +265,18 @@
 			$params = [];
 			$params = array_merge($params, $options);
 
-			$this->curl->post($this->baseUrl . "posts/?community_id={$community_id}&space_id={$space_id}" . http_build_query($params));
+			$name = urlencode($name);
+			$body = urlencode($body);
 
+			$this->curl->post($this->baseUrl . "posts/?name={$name}&body={$body}&community_id={$community_id}&space_id={$space_id}&" . http_build_query($params));
 			$response = json_decode($this->curl->response);
+
+			if(isset($response->success) && $response->success == true) {
+				$response = ['post' => $response->post, 'topic' => $response->topic];
+			} else {
+				$response = false;
+			}
+
 			return $response;
 		}
 
@@ -290,7 +312,7 @@
 			return $response;
 		}
 
-		public function createComment($space_id, $body, $options = [], $community_id = 0, $post_id = false) {
+		public function createComment($post_id, $space_id, $body, $options = [], $community_id = 0) {
 
 			$community_id = $community_id ?: $this->community_id;
 			if(!$community_id) return false;
@@ -300,9 +322,17 @@
 
 			$params = array_merge($params, $options);
 
-			$this->curl->post($this->baseUrl . "comments?community_id={$community_id}&space_id={$space_id}&body={$body}&" . http_build_query($params));
+			$body = urlencode($body);
 
+			$this->curl->post($this->baseUrl . "comments?post_id={$post_id}&community_id={$community_id}&space_id={$space_id}&body={$body}&" . http_build_query($params));
 			$response = json_decode($this->curl->response);
+
+			if(isset($response->success) && $response->success == true) {
+				$response = $response->comment;
+			} else {
+				$response = false;
+			}
+
 			return $response;
 		}
 
@@ -354,6 +384,8 @@
 
 			$params = [];
 			$params = array_merge($params, $options);
+
+			$name = urlencode($name);
 
 			$this->curl->post($this->baseUrl . "community_members?email={$email}&name={$name}&community_id={$community_id}&" . http_build_query($params));
 
