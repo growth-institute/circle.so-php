@@ -7,7 +7,9 @@
 	class Circle {
 
 		private $api_key;
+		private $baseUrl;
 		private $community_id;
+		private $curl;
 
 		public function __construct(string $api_key) {
 
